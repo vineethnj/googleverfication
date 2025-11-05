@@ -433,20 +433,16 @@ class GoogleAdsAutomation:
         objective_config = SmartCampaignConfig.get_objective_config(objective)
         prompt = f"""Analyze: {product_url}
 {product_description if product_description else ""}
-
 Campaign Objective: {objective.value}
 Focus: {objective_config['ad_focus']}
 Keyword Intent: {objective_config['keyword_intent']}
-
 Generate Google Ads campaign data optimized for {objective.value}.
-
 STRICT RULES:
 - Headlines: Max 30 characters
 - Descriptions: Max 90 characters
 - Keywords: Focus on {objective_config['keyword_intent']}
 - Return ONLY valid JSON
 - No markdown, no code blocks
-
 Format:
 {{
  "keywords": [
@@ -462,7 +458,6 @@ Format:
  ],
  "negative_keywords": ["free", "cheap"]
 }}
-
 Return JSON only.
 """
         try:
@@ -686,7 +681,6 @@ Return JSON only.
             raise
 
 # ============== ROUTES ==============
-
 @app.get("/", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -789,7 +783,6 @@ async def dashboard(request: Request):
                     loadCampaigns();
                 }
             }
-
             async function loadCampaigns() {
                 const container = document.getElementById('campaigns-list-container');
                 container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading Campaigns...</div>';
@@ -804,7 +797,6 @@ async def dashboard(request: Request):
                     container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
                 }
             }
-
             function renderCampaignsTable(campaigns) {
                 const container = document.getElementById('campaigns-list-container');
                 if (campaigns.length === 0) {
@@ -841,7 +833,6 @@ async def dashboard(request: Request):
                 tableHTML += `</tbody></table>`;
                 container.innerHTML = tableHTML;
             }
-
             async function toggleCampaignStatus(campaignId, isEnabled) {
                 const newStatus = isEnabled ? 'ENABLED' : 'PAUSED';
                 try {
@@ -856,7 +847,6 @@ async def dashboard(request: Request):
                     alert('Error updating campaign status: ' + error.message);
                 }
             }
-
             async function viewDetails(campaignId) {
                 const detailsView = document.getElementById('details-view');
                 detailsView.style.display = 'block';
@@ -892,7 +882,6 @@ async def dashboard(request: Request):
                     detailsView.innerHTML = `<div class="error">Error loading details: ${error.message}</div>`;
                 }
             }
-
             document.getElementById('date-range-select').addEventListener('change', () => {
                 const detailsView = document.getElementById('details-view');
                 if (detailsView.style.display === 'block' && detailsView.dataset.campaignId) {
@@ -997,100 +986,6 @@ async def health_check():
 
 if __name__ == "__main__":
     os.makedirs("templates", exist_ok=True)
-    with open("templates/login.html", "w") as f:
-        f.write("""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Ads AI Automation - Login</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-container {
-            background: #fff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #1877f2;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #1877f2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button[type="submit"]:hover {
-            background-color: #166fe5;
-        }
-        .error {
-            color: #e53e3e;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Google Ads AI Automation - Login</h1>
-        <form action="/login" method="post">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="google-review@growthsynth.com" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="DemoAccess2024!" required>
-            </div>
-            {% if error %}
-            <div class="error">{{ error }}</div>
-            {% endif %}
-            <button type="submit">Login</button>
-        </form>
-    </div>
-</body>
-</html>
-        """)
     print("=" * 70)
     print("🚀 Google Ads AI Automation - RMF DEMO READY")
     print(f"🎯 TARGETING TEST ACCOUNT: {GOOGLE_ADS_TARGET_CUSTOMER_ID}")
@@ -1104,5 +999,4 @@ if __name__ == "__main__":
     print("=" * 70)
     print("📍 Run this and go to http://127.0.0.1:8000/")
     print("=" * 70 + "\n")
-    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=8000)
