@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+jinja2
+google-ads
+openai
+python-multipart
