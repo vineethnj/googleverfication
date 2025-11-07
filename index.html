@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered lead generation platform that replaces expensive marketing agencies">
+    <title>LeadGen AI - AI-Powered Lead Generation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0a0e27;
+            --secondary: #5b21b6;
+            --accent: #7c3aed;
+            --accent-light: #a78bfa;
+            --text: #0f172a;
+            --text-light: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #fafbfc;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.7;
+            background: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Scroll Animations */
+        .fade-in, .slide-in-left, .slide-in-right, .scale-in, .fade-up {
+            opacity: 0;
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .fade-in {
+            transform: translateY(60px);
+        }
+
+        .slide-in-left {
+            transform: translateX(-80px);
+        }
+
+        .slide-in-right {
+            transform: translateX(80px);
+        }
+
+        .scale-in {
+            transform: scale(0.85);
+        }
+
+        .fade-up {
+            transform: translateY(40px);
+        }
+
+        .fade-in.visible, .slide-in-left.visible, .slide-in-right.visible, .scale-in.visible, .fade-up.visible {
+            opacity: 1;
+            transform: translate(0) scale(1);
+        }
+
+        /* Ultra-Premium Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            padding: 1.5rem 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.95) !important;
+            padding: 1rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: -0.03em;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 8px rgba(91, 33, 182, 0.3));
+        }
+
+        .navbar-brand:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .nav-link {
+            color: var(--text-muted) !important;
+            font-weight: 600;
+            padding: 0.7rem 1.3rem !important;
+            font-size: 0.95rem;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            letter-spacing: -0.01em;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            border-radius: 3px;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-link:hover::before {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        .nav-link:hover {
+            color: var(--text) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Ultra-Premium Buttons */
+        .btn {
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            border: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn-google {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid rgba(226, 232, 240, 0.8) !important;
+            color: #1e293b;
+            padding: 0.7rem 1.8rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-google i {
+            font-size: 1.1rem;
+        }
+
+        .btn-google:hover {
+            background: #ffffff;
+            border-color: #cbd5e1 !important;
+            color: #0f172a;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1);
+            transform: translateY(-4px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            border: 2px solid var(--primary) !important;
+            color: #fff;
+            padding: 0.7rem 1.8rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-color: #1e293b !important;
+            color: #fff;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+        }
+
+        .btn:focus {
+            outline: 3px solid rgba(91, 33, 182, 0.3);
+            outline-offset: 4px;
+        }
+
+        /* Revolutionary Hero Section */
+        .hero {
+            padding: 12rem 0 10rem;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(91, 33, 182, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -10%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(91, 33, 182, 0.08) 0%, transparent 70%);
+            filter: blur(80px);
+            animation: morphing 15s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -10%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
+            filter: blur(80px);
+            animation: morphing 20s ease-in-out infinite reverse;
+        }
+
+        @keyframes morphing {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            33% {
+                transform: translate(50px, -50px) scale(1.1);
+                opacity: 0.8;
+            }
+            66% {
+                transform: translate(-30px, 30px) scale(0.9);
+                opacity: 0.9;
+            }
+        }
+
+        /* Advanced Particle System */
+        .hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .particle.dot {
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(91, 33, 182, 0.6) 0%, rgba(91, 33, 182, 0.2) 100%);
+            animation: float-dot 25s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(91, 33, 182, 0.3);
+        }
+
+        .particle.ring {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(124, 58, 237, 0.3);
+            background: transparent;
+            animation: float-ring 30s infinite ease-in-out;
+        }
+
+        .particle.glow {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.3) 0%, transparent 70%);
+            filter: blur(20px);
+            animation: float-glow 35s infinite ease-in-out;
+        }
+
+        @keyframes float-dot {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.6;
+            }
+            25% {
+                transform: translate(150px, -150px) scale(1.5);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translate(-100px, -300px) scale(0.8);
+                opacity: 0.4;
+            }
+            75% {
+                transform: translate(-200px, -150px) scale(1.3);
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes float-ring {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                opacity: 0.4;
+            }
+            50% {
+                transform: translate(100px, -200px) rotate(180deg) scale(1.5);
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes float-glow {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translate(80px, -150px) scale(1.2);
+                opacity: 0.5;
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 900;
+            color: var(--text);
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -0.05em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            display: inline-block;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% auto;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent), var(--accent-light));
+            border-radius: 3px;
+            opacity: 0.4;
+            filter: blur(2px);
+        }
+
+        .hero p {
+            font-size: 1.35rem;
+            color: var(--text-muted);
+            margin-bottom: 3.5rem;
+            max-width: 650px;
+            line-height: 1.8;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-hero {
+            padding: 1.2rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, #0a0e27 0%, #1e293b 50%, #334155 100%);
+            border: none;
+            color: #fff;
+            box-shadow: 
+                0 10px 40px rgba(10, 14, 39, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.1);
+            background-size: 200% auto;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn-hero-primary:hover {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            color: #fff;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 
+                0 20px 60px rgba(10, 14, 39, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-hero-secondary {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            color: #334155;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+
+        .btn-hero-secondary:hover {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #1e293b;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 
+                0 16px 48px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+
+        /* Revolutionary Hero Visual */
+        .hero-visual {
+            position: relative;
+            height: 550px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .visual-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.85) 100%);
+            backdrop-filter: blur(60px) saturate(200%);
+            -webkit-backdrop-filter: blur(60px) saturate(200%);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            border-radius: 2.5rem;
+            padding: 5rem;
+            box-shadow: 
+                0 40px 120px rgba(0, 0, 0, 0.12),
+                inset 0 2px 0 rgba(255, 255, 255, 1),
+                0 0 0 1px rgba(0, 0, 0, 0.03);
+            animation: float-visual-3d 10s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes float-visual-3d {
+            0%, 100% {
+                transform: translateY(0) rotateX(0deg) rotateY(0deg);
+            }
+            25% {
+                transform: translateY(-40px) rotateX(3deg) rotateY(-3deg);
+            }
+            50% {
+                transform: translateY(-20px) rotateX(-2deg) rotateY(2deg);
+            }
+            75% {
+                transform: translateY(-40px) rotateX(2deg) rotateY(-2deg);
+            }
+        }
+
+        .visual-icon {
+            font-size: 6rem;
+            background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 50%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: icon-pulse-3d 5s ease-in-out infinite;
+            filter: drop-shadow(0 15px 30px rgba(91, 33, 182, 0.3));
+            transform-style: preserve-3d;
+        }
+
+        @keyframes icon-pulse-3d {
+            0%, 100% {
+                transform: scale(1) rotateY(0deg);
+            }
+            50% {
+                transform: scale(1.2) rotateY(180deg);
+            }
+        }
+
+        .visual-decoration {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+        }
+
+        .decoration-1 {
+            width: 500px;
+            height: 500px;
+            top: -100px;
+            right: -100px;
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.2), rgba(124, 58, 237, 0.2));
+            animation: float-decoration-1 12s;
+        }
+
+        .decoration-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -80px;
+            left: -80px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(167, 139, 250, 0.15));
+            animation: float-decoration-2 15s;
+        }
+
+        .decoration-3 {
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.2) 0%, transparent 70%);
+            animation: pulse-decoration 8s;
+        }
+
+        @keyframes float-decoration-1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, -60px) scale(1.15); }
+        }
+
+        @keyframes float-decoration-2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-60px, 60px) scale(1.2); }
+        }
+
+        @keyframes pulse-decoration {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.4; }
+        }
+
+        /* Premium Trust Section */
+        .trust {
+            padding: 4rem 0 6rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .trust p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 700;
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            backdrop-filter: blur(30px);
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .trust-badge:hover {
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(91, 33, 182, 0.15);
+            background: #fff;
+            border-color: var(--accent-light);
+            color: var(--accent);
+        }
+
+        /* Ultra-Premium Section */
+        .section {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 6rem;
+        }
+
+        .section-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 2rem;
+            letter-spacing: -0.04em;
+            line-height: 1.15;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        /* Revolutionary Features */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+        }
+
+        .feature {
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            backdrop-filter: blur(40px);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            border-radius: 2rem;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent), var(--accent-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feature::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(91, 33, 182, 0.08) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .feature:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature:hover::after {
+            opacity: 1;
+        }
+
+        .feature:hover {
+            transform: translateY(-16px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(91, 33, 182, 0.15);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.1), rgba(167, 139, 250, 0.1));
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .feature-icon i {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 12px rgba(91, 33, 182, 0.2));
+        }
+
+        .feature:hover .feature-icon {
+            transform: scale(1.2) rotate(10deg);
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.15), rgba(167, 139, 250, 0.15));
+        }
+
+        .feature h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .feature p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Revolutionary Steps */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 4rem;
+            position: relative;
+        }
+
+        .step {
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .step:hover {
+            transform: translateY(-12px) scale(1.03);
+        }
+
+        .step-number {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            margin: 0 auto 2.5rem;
+            box-shadow: 
+                0 12px 40px rgba(91, 33, 182, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .step-number::before {
+            content: '';
+            position: absolute;
+            inset: -12px;
+            border-radius: 50%;
+            border: 3px solid rgba(91, 33, 182, 0.2);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .step-number::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            border: 2px solid rgba(91, 33, 182, 0.1);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .step:hover .step-number {
+            transform: scale(1.2) rotate(5deg);
+            box-shadow: 
+                0 20px 60px rgba(91, 33, 182, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .step:hover .step-number::before {
+            inset: -16px;
+            border-color: rgba(91, 33, 182, 0.3);
+        }
+
+        .step:hover .step-number::after {
+            inset: -28px;
+        }
+
+        .step h4 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1.2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .step p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        /* Revolutionary Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            backdrop-filter: blur(40px);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            border-radius: 2rem;
+            padding: 3.5rem;
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-20px) scale(1.02);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 1) 0%, rgba(241, 245, 249, 0.98) 100%);
+            border: 3px solid;
+            border-image: linear-gradient(135deg, var(--secondary), var(--accent), var(--accent-light)) 1;
+            transform: scale(1.1);
+            box-shadow: 
+                0 30px 80px rgba(91, 33, 182, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+        }
+
+        .pricing-card.featured::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            background: linear-gradient(135deg, var(--secondary), var(--accent), var(--accent-light));
+            border-radius: 2rem;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(20px);
+        }
+
+        .pricing-card.featured:hover {
+            transform: translateY(-20px) scale(1.12);
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+            color: #fff;
+            padding: 0.7rem 2rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 800;
+            box-shadow: 0 12px 32px rgba(91, 33, 182, 0.4);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .price {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .price-period {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-bottom: 3rem;
+            font-weight: 600;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 3rem 0;
+        }
+
+        .pricing-features li {
+            padding: 1rem 0;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-features li:hover {
+            color: var(--text);
+            transform: translateX(5px);
+        }
+
+        .pricing-features i {
+            color: var(--success);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+        }
+
+        /* Premium CTA */
+        .cta {
+            padding: 10rem 0;
+            background: 
+                linear-gradient(135deg, #0a0e27 0%, #1e293b 50%, #334155 100%),
+                radial-gradient(circle at 20% 50%, rgba(91, 33, 182, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(124, 58, 237, 0.3) 0%, transparent 50%);
+            background-blend-mode: normal, screen, screen;
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.06)"/></svg>');
+            opacity: 0.4;
+            animation: pattern-move 20s linear infinite;
+        }
+
+        @keyframes pattern-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+
+        .cta h2 {
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 900;
+            margin-bottom: 2rem;
+            letter-spacing: -0.04em;
+            position: relative;
+            line-height: 1.1;
+        }
+
+        .cta p {
+            font-size: 1.4rem;
+            color: #cbd5e1;
+            margin-bottom: 4rem;
+            position: relative;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        .btn-cta {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: none;
+            color: var(--primary);
+            padding: 1.3rem 3.5rem;
+            font-weight: 800;
+            border-radius: 1.5rem;
+            font-size: 1.15rem;
+            box-shadow: 
+                0 12px 48px rgba(255, 255, 255, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 1);
+            position: relative;
+        }
+
+        .btn-cta:hover {
+            background: #ffffff;
+            color: var(--primary);
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 
+                0 24px 72px rgba(255, 255, 255, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 1);
+        }
+
+        /* Ultra-Premium Footer */
+        footer {
+            background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%);
+            padding: 6rem 0 3rem;
+            border-top: 2px solid rgba(226, 232, 240, 0.8);
+        }
+
+        footer h6 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        footer ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        footer ul li {
+            margin-bottom: 1rem;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .footer-bottom {
+            margin-top: 5rem;
+            padding-top: 3rem;
+            border-top: 2px solid rgba(226, 232, 240, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .social-links a {
+            color: var(--text-muted);
+            margin-left: 1.5rem;
+            font-size: 1.4rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .social-links a:hover {
+            color: var(--accent);
+            transform: translateY(-4px) scale(1.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero {
+                padding: 7rem 0 5rem;
+            }
+            .hero-visual {
+                height: 450px;
+            }
+            .visual-card {
+                padding: 3.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 5rem 0;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+            .social-links a {
+                margin: 0 1rem;
+            }
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+            .pricing-card.featured:hover {
+                transform: translateY(-20px) scale(1.02);
+            }
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav class="navbar navbar-expand-lg fixed-top" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <a class="navbar-brand" href="#" aria-label="LeadGen AI Home">
+                <i class="fas fa-bolt" aria-hidden="true"></i>
+                LeadGen AI
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-4">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#how-it-works">How It Works</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Pricing</a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/login" class="btn btn-google" aria-label="Login with Google">
+                        <i class="fab fa-google" aria-hidden="true"></i>
+                        Login
+                    </a>
+                    <a href="#pricing" class="btn btn-primary">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content">
+        <section class="hero" style="margin-top: 70px;">
+            <div class="hero-particles" id="particles" aria-hidden="true"></div>
+            
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 slide-in-left">
+                        <h1>Transform leads into <span class="highlight">revenue</span> with AI</h1>
+                        <p>Replace expensive marketing agencies with intelligent automation. Generate qualified leads across LinkedIn, Google, and Meta automatically.</p>
+                        
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a href="#pricing" class="btn btn-hero btn-hero-primary">
+                                Start Free Trial
+                                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            </a>
+                            <a href="#how-it-works" class="btn btn-hero btn-hero-secondary">
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6 mt-5 mt-lg-0 slide-in-right">
+                        <div class="hero-visual">
+                            <div class="visual-decoration decoration-1" aria-hidden="true"></div>
+                            <div class="visual-decoration decoration-2" aria-hidden="true"></div>
+                            <div class="visual-decoration decoration-3" aria-hidden="true"></div>
+                            <div class="visual-card">
+                                <div class="visual-icon">
+                                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust fade-up">
+            <div class="container">
+                <p>Trusted by 500+ growing businesses</p>
+                <div class="trust-badges">
+                    <span class="trust-badge">SaaS</span>
+                    <span class="trust-badge">E-commerce</span>
+                    <span class="trust-badge">Professional Services</span>
+                    <span class="trust-badge">Tech Startups</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="container">
+                <div class="section-header scale-in">
+                    <h2 class="section-title">Everything you need to generate qualified leads</h2>
+                    <p class="section-subtitle">AI-powered automation that replaces expensive marketing agencies</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot" aria-hidden="true"></i>
+                        </div>
+                        <h3>AI Campaign Creation</h3>
+                        <p>Our AI analyzes your website and creates optimized ad campaigns in minutes. No marketing expertise required.</p>
+                    </div>
+                    
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye" aria-hidden="true"></i>
+                        </div>
+                        <h3>Smart Platform Selection</h3>
+                        <p>AI automatically chooses where to run your ads based on your audience and budget for maximum ROI.</p>
+                    </div>
+                    
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain" aria-hidden="true"></i>
+                        </div>
+                        <h3>Continuous Learning</h3>
+                        <p>Mark leads as relevant or not, and our AI improves targeting to generate higher-quality prospects.</p>
+                    </div>
+
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                        </div>
+                        <h3>Revenue Attribution</h3>
+                        <p>Track every lead from first click to final sale. Know exactly what's working and what's not.</p>
+                    </div>
+                    
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-sync" aria-hidden="true"></i>
+                        </div>
+                        <h3>Multi-Platform</h3>
+                        <p>Run campaigns across LinkedIn, Google, and Meta simultaneously from a single dashboard.</p>
+                    </div>
+                    
+                    <div class="feature fade-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                        </div>
+                        <h3>Enterprise Grade</h3>
+                        <p>Bank-level security, 99.9% uptime, and dedicated support for your business.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" style="background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%);" id="how-it-works">
+            <div class="container">
+                <div class="section-header scale-in">
+                    <h2 class="section-title">How it works</h2>
+                    <p class="section-subtitle">From setup to sales-ready leads in less than 10 minutes</p>
+                </div>
+                
+                <div class="steps">
+                    <div class="step fade-up">
+                        <div class="step-number">1</div>
+                        <h4>Connect & Analyze</h4>
+                        <p>Connect your ad accounts and let AI analyze your website to understand your business.</p>
+                    </div>
+                    
+                    <div class="step fade-up">
+                        <div class="step-number">2</div>
+                        <h4>AI Creates Campaigns</h4>
+                        <p>Our AI creates optimized campaigns and sets up targeting based on your goals.</p>
+                    </div>
+                    
+                    <div class="step fade-up">
+                        <div class="step-number">3</div>
+                        <h4>Optimize</h4>
+                        <p>Mark leads as relevant or not, and AI learns to improve quality over time.</p>
+                    </div>
+                    
+                    <div class="step fade-up">
+                        <div class="step-number">4</div>
+                        <h4>Scale</h4>
+                        <p>Track leads from click to revenue and grow with predictable lead generation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="pricing">
+            <div class="container">
+                <div class="section-header scale-in">
+                    <h2 class="section-title">Simple, transparent pricing</h2>
+                    <p class="section-subtitle">Start free, upgrade when you're ready</p>
+                </div>
+                
+                <div class="pricing-grid">
+                    <div class="pricing-card fade-up">
+                        <h3>Starter</h3>
+                        <div class="price">Free</div>
+                        <div class="price-period">Forever</div>
+                        
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Up to 50 leads per month</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> 1 active campaign</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Basic AI optimization</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Email support</li>
+                        </ul>
+                        
+                        <a href="/login" class="btn btn-google w-100" aria-label="Sign up for Starter plan with Google">
+                            <i class="fab fa-google" aria-hidden="true"></i>
+                            Get Started Free
+                        </a>
+                    </div>
+                    
+                    <div class="pricing-card featured fade-up">
+                        <div class="pricing-badge">Most Popular</div>
+                        <h3>Professional</h3>
+                        <div class="price">$297</div>
+                        <div class="price-period">per month</div>
+                        
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Unlimited leads</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Multi-platform campaigns</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Advanced AI learning</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Revenue attribution</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Priority support</li>
+                        </ul>
+                        
+                        <a href="#trial" class="btn btn-primary w-100">Start 14-Day Trial</a>
+                    </div>
+                    
+                    <div class="pricing-card fade-up">
+                        <h3>Enterprise</h3>
+                        <div class="price">$997</div>
+                        <div class="price-period">per month</div>
+                        
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Everything in Professional</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Custom AI training</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> CRM integrations</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> Dedicated manager</li>
+                            <li><i class="fas fa-check" aria-hidden="true"></i> 24/7 support</li>
+                        </ul>
+                        
+                        <a href="#contact" class="btn btn-hero-secondary w-100">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Ready to transform your lead generation?</h2>
+                <p>Start generating qualified leads in less than 10 minutes</p>
+                <a href="/login" class="btn btn-cta" aria-label="Get started with Google">
+                    <i class="fab fa-google me-2" aria-hidden="true"></i>
+                    Get Started Free
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h6><i class="fas fa-bolt me-2" aria-hidden="true"></i>LeadGen AI</h6>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">
+                        AI-powered lead generation platform that replaces expensive marketing agencies.
+                    </p>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>Product</h6>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#">Integrations</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>Resources</h6>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>Company</h6>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6>Connect</h6>
+                    <a href="/login" class="btn btn-google w-100 mb-2" aria-label="Login with Google">
+                        <i class="fab fa-google" aria-hidden="true"></i>
+                        Login
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2024 LeadGen AI. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i></a>
+                    <a href="#" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === '#' || href === '#trial' || href === '#contact') return;
+                
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 70,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Enhanced navbar
+        const navbar = document.querySelector('.navbar');
+        let lastScroll = 0;
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        // Advanced Intersection Observer
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right, .scale-in, .fade-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Advanced particle system
+        function createAdvancedParticles() {
+            const container = document.getElementById('particles');
+            const types = [
+                { class: 'dot', count: 25 },
+                { class: 'ring', count: 8 },
+                { class: 'glow', count: 5 }
+            ];
+
+            types.forEach(type => {
+                for (let i = 0; i < type.count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = `particle ${type.class}`;
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 30 + 's';
+                    particle.style.animationDuration = (20 + Math.random() * 20) + 's';
+                    container.appendChild(particle);
+                }
+            });
+        }
+
+        createAdvancedParticles();
+
+        // Mouse follow effect on features
+        document.querySelectorAll('.feature').forEach(feature => {
+            feature.addEventListener('mousemove', (e) => {
+                const rect = feature.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                feature.style.setProperty('--mouse-x', `${x}%`);
+                feature.style.setProperty('--mouse-y', `${y}%`);
+            });
+        });
+
+        // Stagger animations
+        document.querySelectorAll('.feature').forEach((el, i) => {
+            el.style.transitionDelay = `${i * 0.15}s`;
+        });
+
+        document.querySelectorAll('.step').forEach((el, i) => {
+            el.style.transitionDelay = `${i * 0.15}s`;
+        });
+
+        document.querySelectorAll('.pricing-card').forEach((el, i) => {
+            el.style.transitionDelay = `${i * 0.15}s`;
+        });
+
+        // Advanced button interactions
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height) * 2;
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    top: ${y}px;
+                    left: ${x}px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+                    transform: scale(0);
+                    animation: ripple-expand 0.8s ease-out;
+                    pointer-events: none;
+                `;
+                
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 800);
+            });
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple-expand {
+                to {
+                    transform: scale(1);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Parallax decorations
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            document.querySelectorAll('.visual-decoration').forEach((el, i) => {
+                const speed = 0.2 + (i * 0.15);
+                el.style.transform = `translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const openCollapse = document.querySelector('.navbar-collapse.show');
+                if (openCollapse) {
+                    bootstrap.Collapse.getInstance(openCollapse)?.hide();
+                }
+            }
+        });
+
+        // Reduced motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.particle, .visual-card, .visual-icon, .decoration-1, .decoration-2, .decoration-3').forEach(el => {
+                el.style.animation = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
