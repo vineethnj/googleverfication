@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Full RMF Demo Dashboard - Growthsynth</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: auto; }
+        .header { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { font-size: 28px; margin: 0; } h2 { font-size: 22px; margin-bottom: 15px; } h3 { font-size: 18px; margin-bottom: 10px; }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; background: #fff; border-radius: 8px 8px 0 0; overflow-x: auto; }
+        .tab { padding: 15px 25px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: 600; color: #606770; white-space: nowrap; }
+        .tab.active { color: #1877f2; border-bottom: 3px solid #1877f2; background: #f0f2f5; }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f0f2f5; font-weight: 600; }
+        .status-enabled { color: #38a169; font-weight: bold; } .status-paused { color: #e53e3e; font-weight: bold; }
+        .loading, .error { text-align: center; padding: 40px; font-size: 16px; color: #606770; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1877f2; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .metric-card { background: #f0f2f5; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-card-label { font-size: 14px; color: #606770; margin-bottom: 5px; }
+        .metric-card-value { font-size: 24px; font-weight: bold; color: #1c1e21; }
+        .date-picker { margin-bottom: 20px; }
+        .date-picker select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin: 5px; }
+        .btn-primary { background-color: #1877f2; color: white; } .btn-primary:hover { background-color: #166fe5; }
+        .btn-details { background-color: #e4e6eb; color: #050505; } .btn-details:hover { background-color: #d8dadf; }
+        .btn-edit { background-color: #ffa500; color: white; } .btn-edit:hover { background-color: #ff8c00; }
+        .btn-success { background-color: #38a169; color: white; } .btn-success:hover { background-color: #2f855a; }
+        .btn-danger { background-color: #e53e3e; color: white; } .btn-danger:hover { background-color: #c53030; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; border-radius: 8px; width: 90%; max-width: 600px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; } .close:hover { color: #000; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        .back-btn { background-color: #6c757d; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-block; margin-bottom: 15px; }
+        .back-btn:hover { background-color: #5a6268; }
+        .detail-tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .detail-tab { padding: 12px 20px; cursor: pointer; border: none; background: none; font-size: 15px; font-weight: 600; color: #606770; }
+        .detail-tab.active { color: #1877f2; border-bottom: 3px solid #1877f2; }
+        .detail-tab-content { display: none; } .detail-tab-content.active { display: block; }
+        .success-message { background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #c3e6cb; }
+        .objective-btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .objective-btn:hover {
+            border-color: #1877f2;
+            background: #f0f2f5;
+        }
+        .objective-btn.active {
+            border-color: #1877f2;
+            background: #e7f3ff;
+            color: #1877f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>🚀 Growthsynth - Full RMF Demo (R.27-R.33)</h1></div>
+        
+        <!-- Main Dashboard View -->
+        <div id="main-view">
+            <div class="tabs">
+                <button class="tab active" onclick="showMainTab('campaigns')">📋 All Campaigns</button>
+                <button class="tab" onclick="showMainTab('create-campaign')">🚀 Create Campaign</button>
+            </div>
+            
+            <div id="campaigns-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Campaign Overview</h2>
+                    <div id="campaigns-list-container">
+                        <div class="loading"><div class="spinner"></div>Loading Campaigns...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="create-campaign-tab" class="tab-content">
+                <div class="card">
+                    <h2>Create AI-Powered Campaign</h2>
+                    <form id="createCampaignForm">
+                        <div class="form-group">
+                            <label>Campaign Objective *</label>
+                            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                                <button type="button" class="objective-btn" data-objective="SALES" onclick="selectObjective('SALES')">
+                                    💰 Sales
+                                </button>
+                                <button type="button" class="objective-btn" data-objective="LEADS" onclick="selectObjective('LEADS')">
+                                    📧 Leads
+                                </button>
+                                <button type="button" class="objective-btn active" data-objective="WEBSITE_TRAFFIC" onclick="selectObjective('WEBSITE_TRAFFIC')">
+                                    🌐 Website Traffic
+                                </button>
+                            </div>
+                            <input type="hidden" id="campaign-objective" value="WEBSITE_TRAFFIC">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Website URL *</label>
+                            <input type="url" id="product-url" placeholder="https://www.example.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Campaign Name *</label>
+                            <input type="text" id="campaign-name" placeholder="My Product Campaign" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Daily Budget ($) *</label>
+                            <input type="number" id="daily-budget" step="0.01" min="50" value="100" required>
+                            <small style="color: #606770; font-size: 13px;">Minimum $50/day recommended</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Product Description (Optional)</label>
+                            <textarea id="product-description" rows="4" placeholder="Provide additional details about your product/service to help AI generate better ads..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 16px;">
+                            🚀 Create AI Campaign
+                        </button>
+                    </form>
+                    <div id="create-campaign-result" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaign Details View (R.28-R.33) -->
+        <div id="detail-view" style="display:none;">
+            <a href="javascript:backToMain()" class="back-btn">← Back to Campaigns</a>
+            <div class="card">
+                <h2 id="detail-campaign-name">Campaign Details</h2>
+                <div class="detail-tabs">
+                    <button class="detail-tab active" onclick="showDetailTab('ad-groups')">👥 Ad Groups (R.28,29)</button>
+                    <button class="detail-tab" onclick="showDetailTab('keywords')">🔑 Keywords (R.31)</button>
+                    <button class="detail-tab" onclick="showDetailTab('ads')">📢 Ads (R.32)</button>
+                    <button class="detail-tab" onclick="showDetailTab('negatives')">🚫 Negative Keywords (R.33)</button>
+                    <button class="detail-tab" onclick="showDetailTab('settings')">⚙️ Settings (R.27)</button>
+                    <button class="detail-tab" onclick="showDetailTab('performance')">📊 Performance</button>
+                </div>
+
+                <!-- Ad Groups Tab -->
+                <div id="ad-groups-tab" class="detail-tab-content active">
+                    <button class="btn btn-success" onclick="openCreateAdGroupModal()">+ Create Ad Group</button>
+                    <div id="ad-groups-container">
+                        <div class="loading"><div class="spinner"></div>Loading Ad Groups...</div>
+                    </div>
+                </div>
+
+                <!-- Keywords Tab -->
+                <div id="keywords-tab" class="detail-tab-content">
+                    <button class="btn btn-success" onclick="openCreateKeywordModal()">+ Add Keyword</button>
+                    <div id="keywords-container">
+                        <div class="loading"><div class="spinner"></div>Loading Keywords...</div>
+                    </div>
+                </div>
+
+                <!-- Ads Tab -->
+                <div id="ads-tab" class="detail-tab-content">
+                    <button class="btn btn-success" onclick="openCreateAdModal()">+ Create Ad</button>
+                    <div id="ads-container">
+                        <div class="loading"><div class="spinner"></div>Loading Ads...</div>
+                    </div>
+                </div>
+
+                <!-- Negative Keywords Tab -->
+                <div id="negatives-tab" class="detail-tab-content">
+                    <button class="btn btn-success" onclick="openAddNegativeModal()">+ Add Negative Keyword</button>
+                    <div id="negatives-container">
+                        <div class="loading"><div class="spinner"></div>Loading Negative Keywords...</div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="detail-tab-content">
+                    <div id="settings-form-container">
+                        <div class="loading"><div class="spinner"></div>Loading Settings...</div>
+                    </div>
+                </div>
+
+                <!-- Performance Tab -->
+                <div id="performance-tab" class="detail-tab-content">
+                    <div class="date-picker">
+                        <label for="detail-date-range" style="margin-right: 10px; font-weight: bold;">Date Range:</label>
+                        <select id="detail-date-range" onchange="refreshPerformance()">
+                            <option value="LAST_7_DAYS">Last 7 Days</option>
+                            <option value="LAST_14_DAYS">Last 14 Days</option>
+                            <option value="LAST_30_DAYS" selected>Last 30 Days</option>
+                            <option value="THIS_MONTH">This Month</option>
+                        </select>
+                    </div>
+                    <div id="performance-container">
+                        <div class="loading"><div class="spinner"></div>Loading Performance...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Edit Campaign Modal -->
+    <div id="editCampaignModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editCampaignModal')">&times;</span>
+            <h2>Edit Campaign (R.27)</h2>
+            <form id="editCampaignForm">
+                <div class="form-group">
+                    <label>Campaign Name</label>
+                    <input type="text" id="edit-campaign-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Daily Budget ($)</label>
+                    <input type="number" id="edit-campaign-budget" step="0.01" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Ad Group Modal -->
+    <div id="createAdGroupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createAdGroupModal')">&times;</span>
+            <h2>Create Ad Group</h2>
+            <form id="createAdGroupForm">
+                <div class="form-group">
+                    <label>Ad Group Name</label>
+                    <input type="text" id="new-adgroup-name" required>
+                </div>
+                <div class="form-group">
+                    <label>CPC Bid ($)</label>
+                    <input type="number" id="new-adgroup-cpc" step="0.01" value="1.00" required>
+                </div>
+                <button type="submit" class="btn btn-success">Create Ad Group</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Ad Group Modal -->
+    <div id="editAdGroupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editAdGroupModal')">&times;</span>
+            <h2>Edit Ad Group</h2>
+            <form id="editAdGroupForm">
+                <input type="hidden" id="edit-adgroup-id">
+                <div class="form-group">
+                    <label>Ad Group Name</label>
+                    <input type="text" id="edit-adgroup-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="edit-adgroup-status">
+                        <option value="ENABLED">Enabled</option>
+                        <option value="PAUSED">Paused</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Keyword Modal -->
+    <div id="createKeywordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createKeywordModal')">&times;</span>
+            <h2>Add Keyword</h2>
+            <div id="keyword-adgroup-select-container"></div>
+            <form id="createKeywordForm">
+                <input type="hidden" id="new-keyword-adgroup">
+                <div class="form-group">
+                    <label>Keyword Text</label>
+                    <input type="text" id="new-keyword-text" required>
+                </div>
+                <div class="form-group">
+                    <label>Match Type</label>
+                    <select id="new-keyword-match">
+                        <option value="BROAD">Broad</option>
+                        <option value="PHRASE">Phrase</option>
+                        <option value="EXACT">Exact</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Add Keyword</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Ad Modal -->
+    <!-- Create Ad Modal -->
+    <div id="createAdModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createAdModal')">&times;</span>
+            <h2>Create Ad</h2>
+            <p style="color: #606770; font-size: 14px; margin-bottom: 15px;">
+                <strong>Requirements:</strong> Minimum 3 headlines and 2 descriptions
+            </p>
+            <div id="ad-adgroup-select-container"></div>
+            <form id="createAdForm">
+                <input type="hidden" id="new-ad-adgroup">
+                <div class="form-group">
+                    <label>Headlines (3-15 required, max 30 chars each, separate with |)</label>
+                    <textarea id="new-ad-headlines" rows="4" placeholder="Best Deal Today|Shop Now Save Big|Limited Time Offer" required></textarea>
+                    <small style="color: #606770;">Current: <span id="headline-count">0</span> headlines</small>
+                </div>
+                <div class="form-group">
+                    <label>Descriptions (2-4 required, max 90 chars each, separate with |)</label>
+                    <textarea id="new-ad-descriptions" rows="3" placeholder="Get best deals on quality products today|Free shipping on all orders over $50" required></textarea>
+                    <small style="color: #606770;">Current: <span id="description-count">0</span> descriptions</small>
+                </div>
+                <div class="form-group">
+                    <label>Final URL</label>
+                    <input type="url" id="new-ad-url" required>
+                </div>
+                <button type="submit" class="btn btn-success">Create Ad</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Negative Keyword Modal -->
+    <div id="addNegativeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addNegativeModal')">&times;</span>
+            <h2>Add Negative Keyword</h2>
+            <form id="addNegativeForm">
+                <div class="form-group">
+                    <label>Negative Keyword</label>
+                    <input type="text" id="new-negative-keyword" required>
+                </div>
+                <div class="form-group">
+                    <label>Match Type</label>
+                    <select id="new-negative-match">
+                        <option value="BROAD">Broad</option>
+                        <option value="PHRASE">Phrase</option>
+                        <option value="EXACT">Exact</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Add Negative</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentCampaignId = null;
+        let adGroupsData = [];
+
+        function showMainTab(tabId) {
+            document.querySelectorAll('#main-view .tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#main-view .tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            if (tabId === 'campaigns') loadCampaigns();
+        }
+
+        function showDetailTab(tabId) {
+            document.querySelectorAll('.detail-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabId === 'ad-groups') loadAdGroups();
+            else if (tabId === 'keywords') loadKeywords();
+            else if (tabId === 'ads') loadAds();
+            else if (tabId === 'negatives') loadNegativeKeywords();
+            else if (tabId === 'settings') loadSettings();
+            else if (tabId === 'performance') loadPerformance();
+        }
+
+        async function loadCampaigns() {
+            const container = document.getElementById('campaigns-list-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading Campaigns...</div>';
+            try {
+                const response = await fetch('/api/campaigns');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderCampaignsTable(data.campaigns);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderCampaignsTable(campaigns) {
+            const container = document.getElementById('campaigns-list-container');
+            if (campaigns.length === 0) {
+                container.innerHTML = '<div class="loading">No campaigns found</div>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>Campaign Name</th>
+                <th>Status</th>
+                <th>Budget/Day</th>
+                <th>Enable/Pause (R.25)</th>
+                <th>Actions</th>
+            </tr></thead><tbody>`;
+            campaigns.forEach(c => {
+                html += `<tr>
+                    <td>${c.name}</td>
+                    <td><span class="status-${c.status.toLowerCase()}">${c.status}</span></td>
+                    <td>$${c.budget.toFixed(2)}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" ${c.status === 'ENABLED' ? 'checked' : ''} onchange="toggleCampaignStatus('${c.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn btn-details" onclick="viewCampaignDetails('${c.id}', '${c.name.replace(/'/g, "\\'")}')">View Details</button>
+                        <button class="btn btn-edit" onclick="openEditCampaignModal('${c.id}', '${c.name.replace(/'/g, "\\'")}', ${c.budget})">Edit (R.27)</button>
+                    </td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        async function toggleCampaignStatus(campaignId, isEnabled) {
+            try {
+                const response = await fetch(`/api/update-campaign-status/${campaignId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: isEnabled ? 'ENABLED' : 'PAUSED' })
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                loadCampaigns();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function viewCampaignDetails(campaignId, campaignName) {
+            currentCampaignId = campaignId;
+            document.getElementById('main-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+            document.getElementById('detail-campaign-name').textContent = campaignName;
+            loadAdGroups();
+        }
+
+        function backToMain() {
+            document.getElementById('main-view').style.display = 'block';
+            document.getElementById('detail-view').style.display = 'none';
+            currentCampaignId = null;
+            loadCampaigns();
+        }
+
+        // R.27 - Campaign Editing
+        function openEditCampaignModal(campaignId, name, budget) {
+            document.getElementById('edit-campaign-name').value = name;
+            document.getElementById('edit-campaign-budget').value = budget;
+            document.getElementById('editCampaignModal').style.display = 'block';
+            document.getElementById('editCampaignForm').onsubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    const response = await fetch(`/api/update-campaign/${campaignId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: document.getElementById('edit-campaign-name').value,
+                            daily_budget: parseFloat(document.getElementById('edit-campaign-budget').value)
+                        })
+                    });
+                    if (!response.ok) throw new Error('Failed to update');
+                    closeModal('editCampaignModal');
+                    loadCampaigns();
+                    alert('✅ Campaign updated successfully!');
+                } catch (error) {
+                    alert('Error: ' + error.message);
+                }
+            };
+        }
+
+        // R.28, R.29 - Ad Groups
+        async function loadAdGroups() {
+            const container = document.getElementById('ad-groups-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/ad-groups`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                adGroupsData = data.ad_groups;
+                renderAdGroups(data.ad_groups);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderAdGroups(adGroups) {
+            const container = document.getElementById('ad-groups-container');
+            if (adGroups.length === 0) {
+                container.innerHTML = '<p>No ad groups found. Create one to get started.</p>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>Ad Group Name</th>
+                <th>Status</th>
+                <th>Clicks</th>
+                <th>Cost</th>
+                <th>Impressions</th>
+                <th>Actions</th>
+            </tr></thead><tbody>`;
+            adGroups.forEach(ag => {
+                html += `<tr>
+                    <td>${ag.name}</td>
+                    <td><span class="status-${ag.status.toLowerCase()}">${ag.status}</span></td>
+                    <td>${ag.clicks}</td>
+                    <td>$${ag.cost.toFixed(2)}</td>
+                    <td>${ag.impressions}</td>
+                    <td><button class="btn btn-edit" onclick="openEditAdGroupModal('${ag.id}', '${ag.name.replace(/'/g, "\\'")}', '${ag.status}')">Edit</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function openCreateAdGroupModal() {
+            document.getElementById('createAdGroupModal').style.display = 'block';
+        }
+
+        document.getElementById('createAdGroupForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/ad-groups`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('new-adgroup-name').value,
+                        cpc_bid: parseFloat(document.getElementById('new-adgroup-cpc').value)
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to create');
+                closeModal('createAdGroupModal');
+                loadAdGroups();
+                alert('✅ Ad Group created!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        function openEditAdGroupModal(id, name, status) {
+            document.getElementById('edit-adgroup-id').value = id;
+            document.getElementById('edit-adgroup-name').value = name;
+            document.getElementById('edit-adgroup-status').value = status;
+            document.getElementById('editAdGroupModal').style.display = 'block';
+        }
+
+        document.getElementById('editAdGroupForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const agId = document.getElementById('edit-adgroup-id').value;
+                const response = await fetch(`/api/ad-group/${agId}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('edit-adgroup-name').value,
+                        status: document.getElementById('edit-adgroup-status').value
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                closeModal('editAdGroupModal');
+                loadAdGroups();
+                alert('✅ Ad Group updated!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // R.31 - Keywords
+        async function loadKeywords() {
+            const container = document.getElementById('keywords-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/keywords-full`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderKeywords(data.keywords);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderKeywords(keywords) {
+            const container = document.getElementById('keywords-container');
+            if (keywords.length === 0) {
+                container.innerHTML = '<p>No keywords found</p>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>Keyword</th>
+                <th>Match Type</th>
+                <th>Ad Group</th>
+                <th>Status</th>
+                <th>Clicks</th>
+                <th>Cost</th>
+                <th>Actions</th>
+            </tr></thead><tbody>`;
+            keywords.forEach(kw => {
+                html += `<tr>
+                    <td>${kw.keyword}</td>
+                    <td>${kw.match_type}</td>
+                    <td>${kw.ad_group_name}</td>
+                    <td><span class="status-${kw.status.toLowerCase()}">${kw.status}</span></td>
+                    <td>${kw.clicks}</td>
+                    <td>$${kw.cost.toFixed(2)}</td>
+                    <td>
+                        <button class="btn ${kw.status === 'ENABLED' ? 'btn-danger' : 'btn-success'}" onclick="toggleKeyword('${kw.ad_group_id}', '${kw.id}', '${kw.status === 'ENABLED' ? 'PAUSED' : 'ENABLED'}')">
+                            ${kw.status === 'ENABLED' ? 'Pause' : 'Enable'}
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function openCreateKeywordModal() {
+            if (adGroupsData.length === 0) {
+                alert('Please create an ad group first');
+                return;
+            }
+            let html = '<div class="form-group"><label>Select Ad Group</label><select id="keyword-adgroup-select">';
+            adGroupsData.forEach(ag => {
+                html += `<option value="${ag.id}">${ag.name}</option>`;
+            });
+            html += '</select></div>';
+            document.getElementById('keyword-adgroup-select-container').innerHTML = html;
+            document.getElementById('createKeywordModal').style.display = 'block';
+        }
+
+        document.getElementById('createKeywordForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const agId = document.getElementById('keyword-adgroup-select').value;
+                const response = await fetch(`/api/ad-group/${agId}/keywords`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        keyword: document.getElementById('new-keyword-text').value,
+                        match_type: document.getElementById('new-keyword-match').value
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to add');
+                closeModal('createKeywordModal');
+                loadKeywords();
+                alert('✅ Keyword added!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        async function toggleKeyword(agId, kwId, newStatus) {
+            try {
+                const response = await fetch(`/api/keyword/${agId}/${kwId}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                loadKeywords();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // R.32 - Ads
+        async function loadAds() {
+            const container = document.getElementById('ads-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/ads-full`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderAds(data.ads);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderAds(ads) {
+            const container = document.getElementById('ads-container');
+            if (ads.length === 0) {
+                container.innerHTML = '<p>No ads found</p>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>Ad Preview</th>
+                <th>Type</th>
+                <th>Ad Group</th>
+                <th>Status</th>
+                <th>Clicks</th>
+                <th>Cost</th>
+                <th>Actions</th>
+            </tr></thead><tbody>`;
+            ads.forEach(ad => {
+                html += `<tr>
+                    <td>${ad.preview}</td>
+                    <td>${ad.type}</td>
+                    <td>${ad.ad_group_name}</td>
+                    <td><span class="status-${ad.status.toLowerCase()}">${ad.status}</span></td>
+                    <td>${ad.clicks}</td>
+                    <td>$${ad.cost.toFixed(2)}</td>
+                    <td>
+                        <button class="btn ${ad.status === 'ENABLED' ? 'btn-danger' : 'btn-success'}" onclick="toggleAd('${ad.ad_group_id}', '${ad.id}', '${ad.status === 'ENABLED' ? 'PAUSED' : 'ENABLED'}')">
+                            ${ad.status === 'ENABLED' ? 'Pause' : 'Enable'}
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function openCreateAdModal() {
+            if (adGroupsData.length === 0) {
+                alert('Please create an ad group first');
+                return;
+            }
+            let html = '<div class="form-group"><label>Select Ad Group</label><select id="ad-adgroup-select">';
+            adGroupsData.forEach(ag => {
+                html += `<option value="${ag.id}">${ag.name}</option>`;
+            });
+            html += '</select></div>';
+            document.getElementById('ad-adgroup-select-container').innerHTML = html;
+            document.getElementById('createAdModal').style.display = 'block';
+        }
+
+        document.getElementById('createAdForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const agId = document.getElementById('ad-adgroup-select').value;
+                const headlines = document.getElementById('new-ad-headlines').value.split('|').map(h => h.trim().substring(0, 30));
+                const descriptions = document.getElementById('new-ad-descriptions').value.split('|').map(d => d.trim().substring(0, 90));
+                const response = await fetch(`/api/ad-group/${agId}/ads`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        headlines: headlines,
+                        descriptions: descriptions,
+                        final_url: document.getElementById('new-ad-url').value
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to create');
+                closeModal('createAdModal');
+                loadAds();
+                alert('✅ Ad created!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        async function toggleAd(agId, adId, newStatus) {
+            try {
+                const response = await fetch(`/api/ad/${agId}/${adId}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (!response.ok) throw new Error('Failed to update');
+                loadAds();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // R.33 - Negative Keywords
+        async function loadNegativeKeywords() {
+            const container = document.getElementById('negatives-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/negative-keywords`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderNegativeKeywords(data.negative_keywords);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderNegativeKeywords(negatives) {
+            const container = document.getElementById('negatives-container');
+            if (negatives.length === 0) {
+                container.innerHTML = '<p>No negative keywords found</p>';
+                return;
+            }
+            let html = `<table><thead><tr>
+                <th>Negative Keyword</th>
+                <th>Match Type</th>
+            </tr></thead><tbody>`;
+            negatives.forEach(neg => {
+                html += `<tr><td>${neg.keyword}</td><td>${neg.match_type}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function openAddNegativeModal() {
+            document.getElementById('addNegativeModal').style.display = 'block';
+        }
+
+        document.getElementById('addNegativeForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`/api/campaign/${currentCampaignId}/negative-keywords`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        keyword: document.getElementById('new-negative-keyword').value,
+                        match_type: document.getElementById('new-negative-match').value
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to add');
+                closeModal('addNegativeModal');
+                loadNegativeKeywords();
+                alert('✅ Negative keyword added!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+
+                // Add live counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const headlinesInput = document.getElementById('new-ad-headlines');
+            const descriptionsInput = document.getElementById('new-ad-descriptions');
+            
+            if (headlinesInput) {
+                headlinesInput.addEventListener('input', function() {
+                    const count = this.value.split('|').filter(h => h.trim().length > 0).length;
+                    document.getElementById('headline-count').textContent = count;
+                    document.getElementById('headline-count').style.color = count >= 3 ? '#38a169' : '#e53e3e';
+                });
+            }
+            
+            if (descriptionsInput) {
+                descriptionsInput.addEventListener('input', function() {
+                    const count = this.value.split('|').filter(d => d.trim().length > 0).length;
+                    document.getElementById('description-count').textContent = count;
+                    document.getElementById('description-count').style.color = count >= 2 ? '#38a169' : '#e53e3e';
+                });
+            }
+        });
+
+        document.getElementById('createAdForm').onsubmit = async (e) => {
+            e.preventDefault();
+            try {
+                const agId = document.getElementById('ad-adgroup-select').value;
+                const headlines = document.getElementById('new-ad-headlines').value
+                    .split('|')
+                    .map(h => h.trim())
+                    .filter(h => h.length > 0)
+                    .map(h => h.substring(0, 30));
+                
+                const descriptions = document.getElementById('new-ad-descriptions').value
+                    .split('|')
+                    .map(d => d.trim())
+                    .filter(d => d.length > 0)
+                    .map(d => d.substring(0, 90));
+                
+                // Frontend validation
+                if (headlines.length < 3) {
+                    alert('❌ Please provide at least 3 headlines (you have ' + headlines.length + ')');
+                    return;
+                }
+                if (descriptions.length < 2) {
+                    alert('❌ Please provide at least 2 descriptions (you have ' + descriptions.length + ')');
+                    return;
+                }
+                
+                const response = await fetch(`/api/ad-group/${agId}/ads`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        headlines: headlines,
+                        descriptions: descriptions,
+                        final_url: document.getElementById('new-ad-url').value
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to create ad');
+                }
+                
+                closeModal('createAdModal');
+                loadAds();
+                alert('✅ Ad created!');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+
+        // Settings Tab
+        async function loadSettings() {
+            const container = document.getElementById('settings-form-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            
+            try {
+                const response = await fetch('/api/campaigns');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                const campaign = data.campaigns.find(c => c.id === currentCampaignId);
+                
+                if (!campaign) {
+                    container.innerHTML = '<p>Campaign not found</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label>Campaign Name</label>
+                            <input type="text" id="settings-name" value="${campaign.name}">
+                        </div>
+                        <div class="form-group">
+                            <label>Daily Budget ($)</label>
+                            <input type="number" id="settings-budget" step="0.01" value="${campaign.budget}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </form>
+                `;
+                
+                document.getElementById('settingsForm').onsubmit = async (e) => {
+                    e.preventDefault();
+                    try {
+                        const response = await fetch(`/api/update-campaign/${currentCampaignId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: document.getElementById('settings-name').value,
+                                daily_budget: parseFloat(document.getElementById('settings-budget').value)
+                            })
+                        });
+                        if (!response.ok) throw new Error('Failed to update');
+                        alert('✅ Campaign updated!');
+                        document.getElementById('detail-campaign-name').textContent = document.getElementById('settings-name').value;
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    }
+                };
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        
+
+        // Performance Tab
+        async function loadPerformance() {
+            const container = document.getElementById('performance-container');
+            const dateRange = document.getElementById('detail-date-range').value;
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            try {
+                const response = await fetch(`/api/campaign-performance/${currentCampaignId}?date_range=${dateRange}`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderPerformance(data);
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderPerformance(data) {
+            const container = document.getElementById('performance-container');
+            let html = `
+                <div class="metric-grid">
+                    <div class="metric-card"><div class="metric-card-label">Impressions</div><div class="metric-card-value">${data.performance.impressions.toLocaleString()}</div></div>
+                    <div class="metric-card"><div class="metric-card-label">Clicks</div><div class="metric-card-value">${data.performance.clicks.toLocaleString()}</div></div>
+                    <div class="metric-card"><div class="metric-card-label">Cost</div><div class="metric-card-value">$${data.performance.cost.toFixed(2)}</div></div>
+                    <div class="metric-card"><div class="metric-card-label">Conversions</div><div class="metric-card-value">${data.performance.conversions.toLocaleString()}</div></div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function refreshPerformance() {
+            loadPerformance();
+        }
+
+        // Modal utilities
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Initial load
+        loadCampaigns();
+
+        function selectObjective(objective) {
+            document.querySelectorAll('.objective-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-objective="${objective}"]`).classList.add('active');
+            document.getElementById('campaign-objective').value = objective;
+        }
+
+        document.getElementById('createCampaignForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('create-campaign-result');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Creating Campaign...';
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>AI is analyzing your URL and generating optimized ads...</div>';
+            
+            try {
+                const response = await fetch('/api/create-smart-campaign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_url: document.getElementById('product-url').value,
+                        campaign_name: document.getElementById('campaign-name').value,
+                        objective: document.getElementById('campaign-objective').value,
+                        daily_budget: parseFloat(document.getElementById('daily-budget').value),
+                        product_description: document.getElementById('product-description').value || null
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to create campaign');
+                }
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="success-message">
+                        <h3>✅ Campaign Created Successfully!</h3>
+                        <p><strong>Campaign:</strong> ${data.campaign_name}</p>
+                        <p><strong>Campaign ID:</strong> ${data.campaign_id}</p>
+                        <p><strong>Daily Budget:</strong> $${data.daily_budget}</p>
+                        <p><strong>Keywords Generated:</strong> ${data.keywords_count}</p>
+                        <p style="margin-top: 15px;">
+                            <em>Campaign is paused by default. Enable it from the Campaigns tab to start serving ads.</em>
+                        </p>
+                    </div>
+                `;
+                
+                // Reset form
+                e.target.reset();
+                selectObjective('WEBSITE_TRAFFIC');
+                
+                // Refresh campaigns list
+                loadCampaigns();
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Create AI Campaign';
+            }
+        };
+    </script>
+</body>
+</html>

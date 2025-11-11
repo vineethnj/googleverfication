@@ -2,90 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Ads AI Automation - Login</title>
+    <title>Login - Growthsynth RMF Demo</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #1c1e21;
-            margin: 0;
-            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            margin: 0;
         }
         .login-container {
-            background: #fff;
+            background: white;
             padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
         }
         h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #1877f2;
+            margin: 0 0 30px;
+            font-size: 28px;
+            color: #1c1e21;
+            text-align: center;
         }
         .form-group {
             margin-bottom: 20px;
-            text-align: left;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
+            color: #606770;
         }
-        input[type="text"],
-        input[type="password"] {
+        input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 16px;
             box-sizing: border-box;
         }
-        button[type="submit"] {
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
             width: 100%;
-            padding: 12px;
-            background-color: #1877f2;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 6px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: transform 0.2s;
         }
-        button[type="submit"]:hover {
-            background-color: #166fe5;
+        button:hover {
+            transform: translateY(-2px);
         }
         .error {
-            color: #e53e3e;
-            margin-top: 10px;
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
             font-size: 14px;
+        }
+        .credentials {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f2f5;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .credentials strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #1c1e21;
+        }
+        .credentials code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>Google Ads AI Automation - Login</h1>
-        <form action="/login" method="post">
+        <h1>🚀 RMF Demo Login</h1>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="/login">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="google-review@growthsynth.com" required>
+                <input type="text" id="username" name="username" required>
             </div>
+            
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="DemoAccess2024!" required>
+                <input type="password" id="password" name="password" required>
             </div>
-            {% if error %}
-            <div class="error">{{ error }}</div>
-            {% endif %}
+            
             <button type="submit">Login</button>
         </form>
+        
+        <div class="credentials">
+            <strong>Demo Credentials:</strong>
+            Username: <code>google-review@growthsynth.com</code><br>
+            Password: <code>DemoAccess2024!</code>
+        </div>
     </div>
 </body>
 </html>

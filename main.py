@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from enum import Enum
 
-app = FastAPI(title="Google Ads AI Automation - RMF Demo")
+app = FastAPI(title="Google Ads AI Automation - Full RMF Demo")
 templates = Jinja2Templates(directory="templates")
 
 # Hardcoded login credentials for demo
@@ -33,7 +33,7 @@ GOOGLE_ADS_TARGET_CUSTOMER_ID = "8898565768"
 CEREBRAS_API_KEY = "csk-99rvw8jpx6pppcwwxj2ncjyxcp863vcxjhcjvfpmf9d644nh"
 CEREBRAS_MODEL = "gpt-oss-120b"
 
-# Initialize Database (assuming Database is defined elsewhere; if not, remove or implement)
+# Initialize Database
 class Database:
     pass
 
@@ -58,7 +58,7 @@ class CreateAccountRequest(BaseModel):
     consent_acknowledged: bool
 
 class UpdateCampaignStatusRequest(BaseModel):
-    status: str  # Should be "ENABLED" or "PAUSED"
+    status: str
 
 class SmartCampaignConfig:
     OBJECTIVE_CONFIGS = {
@@ -655,21 +655,33 @@ Return JSON only.
             raise Exception("Could not add any keywords")
 
     def create_ad(self, ad_group_resource: str, headlines: List[str], descriptions: List[str], final_url: str):
+        # Validation
+        if len(headlines) < 3:
+            raise ValueError(f"Minimum 3 headlines required. You provided {len(headlines)}.")
+        if len(descriptions) < 2:
+            raise ValueError(f"Minimum 2 descriptions required. You provided {len(descriptions)}.")
+        
         ad_group_ad_service = self.google_ads_client.get_service("AdGroupAdService")
         ad_group_ad_operation = self.google_ads_client.get_type("AdGroupAdOperation")
         ad_group_ad = ad_group_ad_operation.create
         ad_group_ad.ad_group = ad_group_resource
         ad_group_ad.status = self.google_ads_client.enums.AdGroupAdStatusEnum.ENABLED
         ad_group_ad.ad.final_urls.append(final_url)
+        
         responsive_search_ad = ad_group_ad.ad.responsive_search_ad
+        
+        # Add headlines (min 3, max 15)
         for headline in headlines[:15]:
             headline_asset = self.google_ads_client.get_type("AdTextAsset")
             headline_asset.text = headline[:30]
             responsive_search_ad.headlines.append(headline_asset)
+        
+        # Add descriptions (min 2, max 4)
         for description in descriptions[:4]:
             description_asset = self.google_ads_client.get_type("AdTextAsset")
             description_asset.text = description[:90]
             responsive_search_ad.descriptions.append(description_asset)
+        
         try:
             ad_group_ad_service.mutate_ad_group_ads(
                 customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
@@ -678,6 +690,7 @@ Return JSON only.
             print(f"✅ Ad created successfully")
         except GoogleAdsException as ex:
             print(f"⚠️ Ad creation warning: {ex}")
+            raise
             raise
 
 # ============== ROUTES ==============
@@ -698,201 +711,10 @@ async def login(
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>RMF Demo Dashboard - Growthsynth</title>
-        <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; padding: 20px; }
-            .container { max-width: 1400px; margin: auto; }
-            .header { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 20px; }
-            h1 { font-size: 28px; } h2 { font-size: 22px; margin-bottom: 15px; } h3 { font-size: 18px; margin-bottom: 10px; }
-            .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
-            .tab { padding: 10px 20px; cursor: pointer; border: none; background: none; font-size: 16px; font-weight: 600; color: #606770; }
-            .tab.active { color: #1877f2; border-bottom: 3px solid #1877f2; }
-            .tab-content { display: none; } .tab-content.active { display: block; }
-            .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-            th { background-color: #f0f2f5; font-weight: 600; }
-            .status-enabled { color: #38a169; font-weight: bold; } .status-paused { color: #e53e3e; font-weight: bold; }
-            .loading, .error { text-align: center; padding: 40px; font-size: 16px; color: #606770; }
-            .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1877f2; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-            .switch input { opacity: 0; width: 0; height: 0; }
-            .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
-            .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-            input:checked + .slider { background-color: #2196F3; }
-            input:checked + .slider:before { transform: translateX(22px); }
-            #details-view { border: 1px solid #ddd; margin-top: 20px; padding: 20px; border-radius: 8px; }
-            .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px; }
-            .metric-card { background: #f0f2f5; padding: 15px; border-radius: 8px; text-align: center; }
-            .metric-card-label { font-size: 14px; color: #606770; margin-bottom: 5px; }
-            .metric-card-value { font-size: 24px; font-weight: bold; color: #1c1e21; }
-            .date-picker { margin-bottom: 20px; }
-            .date-picker select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-            .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-            .btn-details { background-color: #e4e6eb; color: #050505; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header"><h1>Growthsynth RMF Demo</h1></div>
-            <div class="tabs">
-                <button class="tab" onclick="showTab('campaigns')">📋 All Campaigns</button>
-                <button class="tab" onclick="showTab('create-campaign')">🚀 Create Campaign</button>
-                <button class="tab" onclick="showTab('create-account')">➕ Create Account</button>
-            </div>
-            <div id="campaigns-tab" class="tab-content">
-                <div class="card">
-                    <h2>Campaign Overview</h2>
-                    <div class="date-picker">
-                        <label for="date-range-select" style="margin-right: 10px; font-weight: bold;">Date Range:</label>
-                        <select id="date-range-select">
-                            <option value="LAST_7_DAYS">Last 7 Days</option>
-                            <option value="LAST_14_DAYS">Last 14 Days</option>
-                            <option value="LAST_30_DAYS" selected>Last 30 Days</option>
-                            <option value="THIS_MONTH">This Month</option>
-                            <option value="LAST_MONTH">Last Month</option>
-                        </select>
-                    </div>
-                    <div id="campaigns-list-container">
-                        <div class="loading"><div class="spinner"></div>Loading Campaigns...</div>
-                    </div>
-                    <div id="details-view" style="display:none;"></div>
-                </div>
-            </div>
-            <div id="create-campaign-tab" class="tab-content"><div class="card"><h2>Create Campaign</h2><p>Functionality as shown in design document.</p></div></div>
-            <div id="create-account-tab" class="tab-content"><div class="card"><h2>Create Account</h2><p>Functionality as shown in design document.</p></div></div>
-        </div>
-        <script>
-            let campaignsData = [];
-            function showTab(tabId) {
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-                document.getElementById(tabId + '-tab').classList.add('active');
-                document.querySelectorAll('.tab').forEach(el => {
-                    if (el.getAttribute('onclick') === "showTab('" + tabId + "')") {
-                        el.classList.add('active');
-                    }
-                });
-                if (tabId === 'campaigns') {
-                    loadCampaigns();
-                }
-            }
-            async function loadCampaigns() {
-                const container = document.getElementById('campaigns-list-container');
-                container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading Campaigns...</div>';
-                document.getElementById('details-view').style.display = 'none';
-                try {
-                    const response = await fetch('/api/campaigns');
-                    if (!response.ok) throw new Error('Failed to fetch campaigns');
-                    const data = await response.json();
-                    campaignsData = data.campaigns;
-                    renderCampaignsTable(campaignsData);
-                } catch (error) {
-                    container.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-                }
-            }
-            function renderCampaignsTable(campaigns) {
-                const container = document.getElementById('campaigns-list-container');
-                if (campaigns.length === 0) {
-                    container.innerHTML = '<div class="loading">No campaigns found in this test account. Please create one.</div>';
-                    return;
-                }
-                let tableHTML = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Campaign Name</th>
-                                <th>Status</th>
-                                <th>Budget/Day</th>
-                                <th>Enable/Pause (R.25)</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-                campaigns.forEach(c => {
-                    tableHTML += `
-                        <tr>
-                            <td>${c.name}</td>
-                            <td><span class="status-${c.status.toLowerCase()}">${c.status}</span></td>
-                            <td>$${c.budget.toFixed(2)}</td>
-                            <td>
-                                <label class="switch">
-                                    <input type="checkbox" ${c.status === 'ENABLED' ? 'checked' : ''} onchange="toggleCampaignStatus('${c.id}', this.checked)">
-                                    <span class="slider"></span>
-                                </label>
-                            </td>
-                            <td><button class="btn btn-details" onclick="viewDetails('${c.id}')">View Details</button></td>
-                        </tr>`;
-                });
-                tableHTML += `</tbody></table>`;
-                container.innerHTML = tableHTML;
-            }
-            async function toggleCampaignStatus(campaignId, isEnabled) {
-                const newStatus = isEnabled ? 'ENABLED' : 'PAUSED';
-                try {
-                    const response = await fetch('/api/update-campaign-status/' + campaignId, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status: newStatus })
-                    });
-                    if (!response.ok) throw new Error('Failed to update status');
-                    loadCampaigns();
-                } catch (error) {
-                    alert('Error updating campaign status: ' + error.message);
-                }
-            }
-            async function viewDetails(campaignId) {
-                const detailsView = document.getElementById('details-view');
-                detailsView.style.display = 'block';
-                detailsView.innerHTML = '<div class="loading"><div class="spinner"></div>Loading Details...</div>';
-                detailsView.dataset.campaignId = campaignId;
-                const dateRange = document.getElementById('date-range-select').value;
-                try {
-                    const response = await fetch(`/api/campaign-performance/${campaignId}?date_range=${dateRange}`);
-                    if (!response.ok) throw new Error('Failed to fetch performance data');
-                    const data = await response.json();
-                    let detailsHTML = `
-                        <h3>Performance for: ${data.performance.campaign_name} (R.26)</h3>
-                        <p>Date Range: ${data.performance.date_range} (R.5)</p>
-                        <div class="metric-grid">
-                            <div class="metric-card"><div class="metric-card-label">Impressions (R.3)</div><div class="metric-card-value">${data.performance.impressions.toLocaleString()}</div></div>
-                            <div class="metric-card"><div class="metric-card-label">Clicks (R.1)</div><div class="metric-card-value">${data.performance.clicks.toLocaleString()}</div></div>
-                            <div class="metric-card"><div class="metric-card-label">Cost (R.2)</div><div class="metric-card-value">$${data.performance.cost.toFixed(2)}</div></div>
-                            <div class="metric-card"><div class="metric-card-label">Conversions (R.4)</div><div class="metric-card-value">${data.performance.conversions.toLocaleString()}</div></div>
-                        </div>
-                        <h3>Keywords (R.30)</h3>
-                        <table>
-                            <thead><tr><th>Keyword</th><th>Match Type</th><th>Status</th><th>Clicks</th><th>Cost</th></tr></thead>
-                            <tbody>${data.keywords.map(k => `<tr><td>${k.keyword}</td><td>${k.match_type}</td><td>${k.status}</td><td>${k.clicks}</td><td>$${k.cost.toFixed(2)}</td></tr>`).join('')}</tbody>
-                        </table>
-                        <h3 style="margin-top:20px;">Ads (R.30)</h3>
-                        <table>
-                            <thead><tr><th>Ad ID</th><th>Ad Type</th><th>Status</th><th>Clicks</th><th>Cost</th></tr></thead>
-                            <tbody>${data.ads.map(a => `<tr><td>${a.ad_id}</td><td>${a.ad_type}</td><td>${a.status}</td><td>${a.clicks}</td><td>$${a.cost.toFixed(2)}</td></tr>`).join('')}</tbody>
-                        </table>
-                    `;
-                    detailsView.innerHTML = detailsHTML;
-                } catch (error) {
-                    detailsView.innerHTML = `<div class="error">Error loading details: ${error.message}</div>`;
-                }
-            }
-            document.getElementById('date-range-select').addEventListener('change', () => {
-                const detailsView = document.getElementById('details-view');
-                if (detailsView.style.display === 'block' && detailsView.dataset.campaignId) {
-                    viewDetails(detailsView.dataset.campaignId);
-                }
-            });
-            showTab('campaigns');
-        </script>
-    </body>
-    </html>
-    """
+    # Load the comprehensive dashboard from file
+    dashboard_path = os.path.join(os.path.dirname(__file__), 'templates', 'dashboard.html')
+    with open(dashboard_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
     return HTMLResponse(content=html_content)
 
 @app.post("/api/create-account")
@@ -931,6 +753,60 @@ async def update_campaign_status_endpoint(campaign_id: str, request: UpdateCampa
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
+# NEW: R.27 - Campaign Editing
+@app.post("/api/update-campaign/{campaign_id}")
+async def update_campaign_details(campaign_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        campaign_service = automation.google_ads_client.get_service("CampaignService")
+        campaign_budget_service = automation.google_ads_client.get_service("CampaignBudgetService")
+        
+        operations = []
+        
+        # Update campaign name if provided
+        if 'name' in request:
+            campaign_operation = automation.google_ads_client.get_type("CampaignOperation")
+            campaign = campaign_operation.update
+            campaign.resource_name = campaign_service.campaign_path(GOOGLE_ADS_TARGET_CUSTOMER_ID, campaign_id)
+            campaign.name = request['name']
+            campaign_operation.update_mask.paths.append("name")
+            operations.append(campaign_operation)
+        
+        # Update budget if provided
+        if 'daily_budget' in request:
+            # Get campaign budget resource name first
+            ga_service = automation.google_ads_client.get_service("GoogleAdsService")
+            query = f"SELECT campaign.campaign_budget FROM campaign WHERE campaign.id = {campaign_id}"
+            req = automation.google_ads_client.get_type("SearchGoogleAdsRequest")
+            req.customer_id = GOOGLE_ADS_TARGET_CUSTOMER_ID
+            req.query = query
+            response = ga_service.search(request=req)
+            budget_resource_name = None
+            for row in response:
+                budget_resource_name = row.campaign.campaign_budget
+                break
+            
+            if budget_resource_name:
+                budget_operation = automation.google_ads_client.get_type("CampaignBudgetOperation")
+                budget = budget_operation.update
+                budget.resource_name = budget_resource_name
+                budget.amount_micros = int(request['daily_budget'] * 1000000)
+                budget_operation.update_mask.paths.append("amount_micros")
+                campaign_budget_service.mutate_campaign_budgets(
+                    customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+                    operations=[budget_operation]
+                )
+        
+        if operations:
+            campaign_service.mutate_campaigns(
+                customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+                operations=operations
+            )
+        
+        return {"success": True, "message": "Campaign updated"}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
 @app.get("/api/campaigns")
 async def get_campaigns():
     try:
@@ -948,6 +824,329 @@ async def get_campaign_performance_endpoint(campaign_id: str, date_range: str = 
         keywords = automation.get_keyword_performance(GOOGLE_ADS_TARGET_CUSTOMER_ID, campaign_id, date_range)
         ads = automation.get_ad_performance(GOOGLE_ADS_TARGET_CUSTOMER_ID, campaign_id, date_range)
         return {"success": True, "performance": performance, "keywords": keywords, "ads": ads}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+# NEW: R.28, R.29 - Ad Group Management
+@app.get("/api/campaign/{campaign_id}/ad-groups")
+async def get_ad_groups(campaign_id: str):
+    try:
+        automation = GoogleAdsAutomation()
+        ga_service = automation.google_ads_client.get_service("GoogleAdsService")
+        query = f"""
+            SELECT
+                ad_group.id,
+                ad_group.name,
+                ad_group.status,
+                metrics.clicks,
+                metrics.cost_micros,
+                metrics.impressions
+            FROM ad_group
+            WHERE campaign.id = {campaign_id}
+            AND segments.date DURING LAST_30_DAYS
+        """
+        request = automation.google_ads_client.get_type("SearchGoogleAdsRequest")
+        request.customer_id = GOOGLE_ADS_TARGET_CUSTOMER_ID
+        request.query = query
+        response = ga_service.search(request=request)
+        
+        ad_groups_dict = {}
+        for row in response:
+            ag_id = str(row.ad_group.id)
+            if ag_id not in ad_groups_dict:
+                ad_groups_dict[ag_id] = {
+                    "id": ag_id,
+                    "name": row.ad_group.name,
+                    "status": row.ad_group.status.name,
+                    "clicks": 0,
+                    "cost": 0,
+                    "impressions": 0
+                }
+            ad_groups_dict[ag_id]["clicks"] += row.metrics.clicks
+            ad_groups_dict[ag_id]["cost"] += row.metrics.cost_micros / 1000000
+            ad_groups_dict[ag_id]["impressions"] += row.metrics.impressions
+        
+        return {"success": True, "ad_groups": list(ad_groups_dict.values())}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/campaign/{campaign_id}/ad-groups")
+async def create_ad_group(campaign_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        campaign_resource = f"customers/{GOOGLE_ADS_TARGET_CUSTOMER_ID}/campaigns/{campaign_id}"
+        ad_group_resource = automation.create_ad_group(campaign_resource, request['name'], request.get('cpc_bid', 1.0))
+        return {"success": True, "resource_name": ad_group_resource}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/ad-group/{ad_group_id}/update")
+async def update_ad_group(ad_group_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        ad_group_service = automation.google_ads_client.get_service("AdGroupService")
+        ad_group_operation = automation.google_ads_client.get_type("AdGroupOperation")
+        ad_group = ad_group_operation.update
+        ad_group.resource_name = ad_group_service.ad_group_path(GOOGLE_ADS_TARGET_CUSTOMER_ID, ad_group_id)
+        
+        if 'name' in request:
+            ad_group.name = request['name']
+            ad_group_operation.update_mask.paths.append("name")
+        
+        if 'status' in request:
+            status_enum = automation.google_ads_client.enums.AdGroupStatusEnum
+            if request['status'].upper() == "PAUSED":
+                ad_group.status = status_enum.PAUSED
+            elif request['status'].upper() == "ENABLED":
+                ad_group.status = status_enum.ENABLED
+            ad_group_operation.update_mask.paths.append("status")
+        
+        ad_group_service.mutate_ad_groups(
+            customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+            operations=[ad_group_operation]
+        )
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+# NEW: R.31 - Keyword Management
+@app.get("/api/campaign/{campaign_id}/keywords-full")
+async def get_keywords_full(campaign_id: str):
+    try:
+        automation = GoogleAdsAutomation()
+        ga_service = automation.google_ads_client.get_service("GoogleAdsService")
+        query = f"""
+            SELECT
+                ad_group_criterion.criterion_id,
+                ad_group_criterion.keyword.text,
+                ad_group_criterion.keyword.match_type,
+                ad_group_criterion.status,
+                ad_group.id,
+                ad_group.name,
+                metrics.clicks,
+                metrics.cost_micros,
+                metrics.impressions
+            FROM keyword_view
+            WHERE campaign.id = {campaign_id}
+            AND segments.date DURING LAST_30_DAYS
+        """
+        request = automation.google_ads_client.get_type("SearchGoogleAdsRequest")
+        request.customer_id = GOOGLE_ADS_TARGET_CUSTOMER_ID
+        request.query = query
+        response = ga_service.search(request=request)
+        
+        keywords_dict = {}
+        for row in response:
+            kw_id = str(row.ad_group_criterion.criterion_id)
+            ag_id = str(row.ad_group.id)
+            key = f"{ag_id}_{kw_id}"
+            if key not in keywords_dict:
+                keywords_dict[key] = {
+                    "id": kw_id,
+                    "ad_group_id": ag_id,
+                    "ad_group_name": row.ad_group.name,
+                    "keyword": row.ad_group_criterion.keyword.text,
+                    "match_type": row.ad_group_criterion.keyword.match_type.name,
+                    "status": row.ad_group_criterion.status.name,
+                    "clicks": 0,
+                    "cost": 0,
+                    "impressions": 0
+                }
+            keywords_dict[key]["clicks"] += row.metrics.clicks
+            keywords_dict[key]["cost"] += row.metrics.cost_micros / 1000000
+            keywords_dict[key]["impressions"] += row.metrics.impressions
+        
+        return {"success": True, "keywords": list(keywords_dict.values())}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/ad-group/{ad_group_id}/keywords")
+async def add_keyword(ad_group_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        ad_group_resource = f"customers/{GOOGLE_ADS_TARGET_CUSTOMER_ID}/adGroups/{ad_group_id}"
+        automation.add_keywords(ad_group_resource, [request])
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/keyword/{ad_group_id}/{criterion_id}/update")
+async def update_keyword(ad_group_id: str, criterion_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        ad_group_criterion_service = automation.google_ads_client.get_service("AdGroupCriterionService")
+        operation = automation.google_ads_client.get_type("AdGroupCriterionOperation")
+        criterion = operation.update
+        criterion.resource_name = ad_group_criterion_service.ad_group_criterion_path(
+            GOOGLE_ADS_TARGET_CUSTOMER_ID, ad_group_id, criterion_id
+        )
+        
+        status_enum = automation.google_ads_client.enums.AdGroupCriterionStatusEnum
+        if request['status'].upper() == "PAUSED":
+            criterion.status = status_enum.PAUSED
+        elif request['status'].upper() == "ENABLED":
+            criterion.status = status_enum.ENABLED
+        operation.update_mask.paths.append("status")
+        
+        ad_group_criterion_service.mutate_ad_group_criteria(
+            customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+            operations=[operation]
+        )
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+# NEW: R.32 - Ad Management
+@app.get("/api/campaign/{campaign_id}/ads-full")
+async def get_ads_full(campaign_id: str):
+    try:
+        automation = GoogleAdsAutomation()
+        ga_service = automation.google_ads_client.get_service("GoogleAdsService")
+        query = f"""
+            SELECT
+                ad_group_ad.ad.id,
+                ad_group_ad.ad.type,
+                ad_group_ad.status,
+                ad_group.id,
+                ad_group.name,
+                ad_group_ad.ad.responsive_search_ad.headlines,
+                ad_group_ad.ad.responsive_search_ad.descriptions,
+                metrics.clicks,
+                metrics.cost_micros,
+                metrics.impressions
+            FROM ad_group_ad
+            WHERE campaign.id = {campaign_id}
+            AND segments.date DURING LAST_30_DAYS
+        """
+        request = automation.google_ads_client.get_type("SearchGoogleAdsRequest")
+        request.customer_id = GOOGLE_ADS_TARGET_CUSTOMER_ID
+        request.query = query
+        response = ga_service.search(request=request)
+        
+        ads_dict = {}
+        for row in response:
+            ad_id = str(row.ad_group_ad.ad.id)
+            ag_id = str(row.ad_group.id)
+            key = f"{ag_id}_{ad_id}"
+            if key not in ads_dict:
+                headlines = [h.text for h in row.ad_group_ad.ad.responsive_search_ad.headlines[:3]]
+                ads_dict[key] = {
+                    "id": ad_id,
+                    "ad_group_id": ag_id,
+                    "ad_group_name": row.ad_group.name,
+                    "type": row.ad_group_ad.ad.type_.name,
+                    "status": row.ad_group_ad.status.name,
+                    "preview": " | ".join(headlines) if headlines else "N/A",
+                    "clicks": 0,
+                    "cost": 0,
+                    "impressions": 0
+                }
+            ads_dict[key]["clicks"] += row.metrics.clicks
+            ads_dict[key]["cost"] += row.metrics.cost_micros / 1000000
+            ads_dict[key]["impressions"] += row.metrics.impressions
+        
+        return {"success": True, "ads": list(ads_dict.values())}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/ad-group/{ad_group_id}/ads")
+async def create_ad_endpoint(ad_group_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        ad_group_resource = f"customers/{GOOGLE_ADS_TARGET_CUSTOMER_ID}/adGroups/{ad_group_id}"
+        automation.create_ad(
+            ad_group_resource,
+            request['headlines'],
+            request['descriptions'],
+            request['final_url']
+        )
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/ad/{ad_group_id}/{ad_id}/update")
+async def update_ad(ad_group_id: str, ad_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        ad_group_ad_service = automation.google_ads_client.get_service("AdGroupAdService")
+        operation = automation.google_ads_client.get_type("AdGroupAdOperation")
+        ad_group_ad = operation.update
+        ad_group_ad.resource_name = ad_group_ad_service.ad_group_ad_path(
+            GOOGLE_ADS_TARGET_CUSTOMER_ID, ad_group_id, ad_id
+        )
+        
+        status_enum = automation.google_ads_client.enums.AdGroupAdStatusEnum
+        if request['status'].upper() == "PAUSED":
+            ad_group_ad.status = status_enum.PAUSED
+        elif request['status'].upper() == "ENABLED":
+            ad_group_ad.status = status_enum.ENABLED
+        operation.update_mask.paths.append("status")
+        
+        ad_group_ad_service.mutate_ad_group_ads(
+            customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+            operations=[operation]
+        )
+        return {"success": True}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+# NEW: R.33 - Negative Keyword Management
+@app.get("/api/campaign/{campaign_id}/negative-keywords")
+async def get_negative_keywords(campaign_id: str):
+    try:
+        automation = GoogleAdsAutomation()
+        ga_service = automation.google_ads_client.get_service("GoogleAdsService")
+        query = f"""
+            SELECT
+                campaign_criterion.criterion_id,
+                campaign_criterion.keyword.text,
+                campaign_criterion.keyword.match_type,
+                campaign_criterion.negative
+            FROM campaign_criterion
+            WHERE campaign.id = {campaign_id}
+            AND campaign_criterion.type = KEYWORD
+            AND campaign_criterion.negative = TRUE
+        """
+        request = automation.google_ads_client.get_type("SearchGoogleAdsRequest")
+        request.customer_id = GOOGLE_ADS_TARGET_CUSTOMER_ID
+        request.query = query
+        response = ga_service.search(request=request)
+        
+        negatives = []
+        for row in response:
+            negatives.append({
+                "id": str(row.campaign_criterion.criterion_id),
+                "keyword": row.campaign_criterion.keyword.text,
+                "match_type": row.campaign_criterion.keyword.match_type.name
+            })
+        
+        return {"success": True, "negative_keywords": negatives}
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
+
+@app.post("/api/campaign/{campaign_id}/negative-keywords")
+async def add_negative_keyword(campaign_id: str, request: Dict):
+    try:
+        automation = GoogleAdsAutomation()
+        campaign_criterion_service = automation.google_ads_client.get_service("CampaignCriterionService")
+        operation = automation.google_ads_client.get_type("CampaignCriterionOperation")
+        criterion = operation.create
+        criterion.campaign = f"customers/{GOOGLE_ADS_TARGET_CUSTOMER_ID}/campaigns/{campaign_id}"
+        criterion.keyword.text = request['keyword']
+        
+        match_type_map = {
+            "BROAD": automation.google_ads_client.enums.KeywordMatchTypeEnum.BROAD,
+            "PHRASE": automation.google_ads_client.enums.KeywordMatchTypeEnum.PHRASE,
+            "EXACT": automation.google_ads_client.enums.KeywordMatchTypeEnum.EXACT
+        }
+        criterion.keyword.match_type = match_type_map.get(request.get('match_type', 'BROAD'))
+        criterion.negative = True
+        
+        campaign_criterion_service.mutate_campaign_criteria(
+            customer_id=GOOGLE_ADS_TARGET_CUSTOMER_ID,
+            operations=[operation]
+        )
+        return {"success": True}
     except Exception as ex:
         raise HTTPException(status_code=500, detail=str(ex))
 
@@ -982,20 +1181,25 @@ async def create_smart_campaign(request: SimpleCampaignRequest):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "version": "9.0 - RMF Compliant Demo"}
+    return {"status": "healthy", "version": "10.0 - Full RMF Compliant (R.27-R.33)"}
 
 if __name__ == "__main__":
     os.makedirs("templates", exist_ok=True)
     print("=" * 70)
-    print("🚀 Google Ads AI Automation - RMF DEMO READY")
+    print("🚀 Google Ads AI Automation - FULL RMF DEMO")
     print(f"🎯 TARGETING TEST ACCOUNT: {GOOGLE_ADS_TARGET_CUSTOMER_ID}")
     print("=" * 70)
-    print("📊 RMF FEATURES IMPLEMENTED:")
+    print("📊 FULL RMF FEATURES IMPLEMENTED:")
     print(" ✅ R.25 - Pause/Enable Campaigns")
-    print(" ✅ R.5 - Dynamic Date Range Reporting")
     print(" ✅ R.26 - Campaign List View")
+    print(" ✅ R.27 - Campaign Editing (Name & Budget)")
+    print(" ✅ R.28 - Ad Group Create/Edit")
+    print(" ✅ R.29 - Ad Group Performance View")
     print(" ✅ R.30 - Keyword & Ad Detail View")
-    print(" ✅ R.1, R.2, R.3, R.4 - Core Metrics Reporting")
+    print(" ✅ R.31 - Keyword Create/Edit")
+    print(" ✅ R.32 - Ad Create/Edit")
+    print(" ✅ R.33 - Negative Keywords")
+    print(" ✅ R.1, R.2, R.3, R.4, R.5 - Core Metrics")
     print("=" * 70)
     print("📍 Run this and go to http://127.0.0.1:8000/")
     print("=" * 70 + "\n")
